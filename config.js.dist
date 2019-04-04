@@ -1,0 +1,35 @@
+const urlWebserver = "https://myserver.com";
+
+module.exports = {
+    notifiers: {
+        pushover: {
+            type: 'pushover',
+            token: 'xxx',
+            user: 'xxx'
+        }
+    },
+    checks: [
+        {
+            name: "Ping web server",
+            every: { rule: "*/10 * * * * *"},
+            execute: async (axios, context, notify) => {
+                const lastContext = context.get();
+                let online;
+
+                try {
+                    await axios.get(urlWebserver);
+                    online = true;
+                } catch(e) {
+                    online = false;
+                }
+
+                const alert = (lastContext && lastContext.online != online) || (!lastContext && !online);
+                if (alert) {
+                    await notify('*', `${online ? "End alert" : "Start alert"} Web server`, `Webserver is ${online ? "online" : "offline"}`);
+                }
+
+                return { online };
+            }
+        }
+    ]
+} 
